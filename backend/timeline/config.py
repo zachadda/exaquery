@@ -10,7 +10,7 @@ def load_config(path):
         if pth.suffix == ".yaml":
             with pth.open() as f:
                 try:
-                    d = yaml.load(f)
+                    d = yaml.safe_load(f)
                     name = pth.stem
                     d["name"] = name
                     yield (name, d)
