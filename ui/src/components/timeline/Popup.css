@@ -1,33 +1,33 @@
-
-.Popup{
-    /*border: 1px solid black; */
-    position: absolute;
-    min-width: 500px;
-    max-width: 45%;
-    border: 1px solid grey;
-    background-color: #EFEFEF;
-    padding: 0px;
-    font-size: 14px;
-    
-    /*overflow-y: scroll; */
+.Popup {
+  position: absolute;
+  min-width: 500px;
+  max-width: 45%;
+  background: #1a1d27;
+  border: 1px solid #2e3348;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 14px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  z-index: 100;
 }
 
-.Popup>.controls{
-    text-align: right;
-    padding: 4px;
-    font-size: 15px;
-    font-weight: bold;
+.Popup > .controls {
+  text-align: right;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #5c6178;
+  cursor: pointer;
+  transition: color 0.15s;
 }
 
-.Popup>.controls:hover{
-    cursor: pointer;
-    background-color: #CCCCCC;
-    
+.Popup > .controls:hover {
+  color: #e8eaed;
 }
 
-.Popup>.content{
-    padding: 10px;
-    overflow-y: scroll;
-    max-height: 70vh;
-    min-height: 200px;
+.Popup > .content {
+  padding: 10px 16px 16px;
+  overflow-y: auto;
+  max-height: 70vh;
+  min-height: 200px;
 }

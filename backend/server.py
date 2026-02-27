@@ -1,7 +1,7 @@
 from os.path import abspath
 import os
 
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from flask import Flask, send_from_directory, send_file
 
 from timeline.timeline_app import app as timeline_app
@@ -16,11 +16,10 @@ defaults = {"path": ""}
 @html_app.route("/", defaults=defaults)
 @html_app.route("/<path:path>")
 def index(path):
-    print(path)
-    if path.startswith("static"):
-        p = abspath(os.environ.get("HTML") + "/" + path)
-        return send_file(p)
-    return send_from_directory(os.environ.get("HTML"), "index.html")
+    html_dir = os.environ.get("HTML", "../ui/dist")
+    if path.startswith("assets") or path == "favicon.ico":
+        return send_file(abspath(html_dir + "/" + path))
+    return send_from_directory(html_dir, "index.html")
 
 
 app = Flask("main")

@@ -1,1 +1,3 @@
-$background: #efefef;
+@use '../../styles/tokens' as *;
+
+$background: $bg-panel;

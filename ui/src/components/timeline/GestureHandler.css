@@ -1,15 +1,15 @@
-.BackgroundRect{
-    background-color: white;
-    fill: white;
+.BackgroundRect {
+  fill: #1a1d27;
 }
 
-.GestureHandler{
-    pointer-events: all;
+.GestureHandler {
+  pointer-events: all;
 }
 
 .TimeMarker {
-    stroke: #999;
-    stroke-width: 0.5;
-    stroke-dasharray: 2 2;
-    pointer-events: all;
+  stroke: #6366f1;
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
+  opacity: 0.6;
 }

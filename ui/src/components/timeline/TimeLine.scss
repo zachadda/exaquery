@@ -1,45 +1,37 @@
-@import 'constants.scss';
+@use 'constants' as *;
 
-
-.TimeLine{
-    /*border: 1px solid black; */
-    /*font-family: 'Times New Roman', Times, serif */
-    
+.TimeLine {
+  background-color: $background;
 }
 
-
-
-.timeLines line{
-    stroke: #CCC;
-    stroke-width: 0.5;
-    stroke-dasharray: 4 3;
+.timeLines line {
+  stroke: #2e3348;
+  stroke-width: 0.5;
+  stroke-dasharray: 4 3;
 }
 
-
-.group{
-    stroke: grey;
-    stroke-width: 0.5;    
-    fill: $background; 
+.group {
+  stroke: #2e3348;
+  stroke-width: 0.5;
+  fill: #1a1d27;
 }
 
-.group text{
-    stroke: none;
-    fill: black;
-    font-size: 10px;
+.group text {
+  stroke: none;
+  fill: #9aa0b0;
+  font-size: 10px;
 }
 
 .group line {
-    stroke:#DDDDDD;
-    stroke-width: 1;
-    stroke-dasharray: 2 1;
+  stroke: #2e3348;
+  stroke-width: 1;
+  stroke-dasharray: 2 1;
 }
 
-.hashLine{
-    stroke-width: 1;
-    stroke: white;
-    
+.axis text {
+  fill: #9aa0b0;
 }
 
-.hashBackground{
-    fill: lightblue;
+.axis line {
+  stroke: #9aa0b0;
 }
