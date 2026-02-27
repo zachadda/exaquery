@@ -23,37 +23,48 @@ COPY run.sh run.sh
 # Build Python
 # ============================================================================
 
-FROM base AS build_py
+FROM alpine:3.8 AS build_py
 
 RUN apk --no-cache add \
     build-base \
-    python3-dev
+    python3-dev \
+    py3-pip \
+    libffi-dev \
+    gcc \
+    musl-dev
 
 WORKDIR /app/backend
+
+# Upgrade pip to the latest version
+RUN pip3 install --upgrade pip
 
 COPY --from=code /app/backend/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
 
+
+
 # ============================================================================
 # Build JavaScript
 # ============================================================================
 
-FROM base AS build_js
-
-RUN apk --no-cache add yarn
+FROM node:14-alpine AS build_js
 
 WORKDIR /app/ui
 
 COPY --from=code /app/ui/package.json .
 COPY --from=code /app/ui/yarn.lock .
 
-RUN yarn
+RUN yarn install  # Install dependencies, including node-sass
+RUN yarn upgrade caniuse-lite  # Update caniuse-lite
+
+#RUN yarn
 
 COPY --from=code /app/ui/ .
 
 RUN yarn build
+
 
 
 # ============================================================================
