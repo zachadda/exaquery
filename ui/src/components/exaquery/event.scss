@@ -1,10 +1,11 @@
-@import "query_constants.scss";
+@use "query_constants" as *;
 
 .event {
-  stroke: white;
+  stroke: rgba(0, 0, 0, 0.3);
   stroke-width: 0.3;
-  fill: #efefef;
+  fill: #3d4260;
   cursor: pointer;
+  transition: opacity 0.1s;
 
   @each $qType, $fillColor in $queryTypes {
     &.#{$qType} {
@@ -13,31 +14,22 @@
   }
 
   &.EVENT_GROUP {
-    /*fill: url(#hashes); */
-    /*fill: #ccccff; */
-    /* stroke: #ccc; 
-    stroke-width: 5;*/
-    /*stroke-dasharray: 1 1; */
-    /*background-image: url('/static/query_group.png');
-    background-repeat: repeat; */
-    /*stroke: black;
-    stroke-width: 0.4; */
-    
     fill: url(#event_group);
-    
+
     &.noflag {
-      /*fill: url(#hashes); */
-      stroke: #ff9999;
+      stroke: #ef4444;
       stroke-width: 1;
     }
   }
+
   &.noflag {
-    stroke: red;
+    stroke: #ef4444;
     stroke-width: 1;
-    /*stroke-dasharray: 1 1; */
   }
+
   &:hover {
-    stroke: black;
+    stroke: #e8eaed;
     stroke-width: 1;
+    filter: brightness(1.2);
   }
 }
