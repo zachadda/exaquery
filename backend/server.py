@@ -1,7 +1,7 @@
 from os.path import abspath
 import os
 
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from flask import Flask, send_from_directory, send_file
 
 from timeline.timeline_app import app as timeline_app

@@ -1,15 +1,30 @@
+import re
+
 from jinja2 import Environment
 from .config import get_logger
 
 
-
-
 log = get_logger()
+
+
+def sql_escape(value):
+    """Escape single quotes for safe interpolation into SQL LIKE clauses."""
+    if not isinstance(value, str):
+        return value
+    return value.replace("'", "''")
+
+
+def get_jinja_environment():
+    """Return a Jinja2 Environment with the sql_escape filter registered."""
+    env = Environment()
+    env.filters["sql_escape"] = sql_escape
+    return env
+
 
 def gen_export(
     base_queries, start_time: int, stop_time: int, granularity: int, threshold: int, params: dict) -> str:
     base_q_template = ",\n".join([f"{k} as (\n{v}\n)" for k, v in base_queries.items()])
-    base_q = Environment().from_string(base_q_template).render(params)
+    base_q = get_jinja_environment().from_string(base_q_template).render(params)
     time_unit_duration = (stop_time - start_time) / granularity
     max_event_duration = time_unit_duration / threshold
     q = f"""
