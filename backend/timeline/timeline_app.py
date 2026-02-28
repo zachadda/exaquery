@@ -7,6 +7,10 @@ from flask_caching import Cache
 import pyexasol
 from timeline.config import load_config, get_logger
 from timeline.query_generator import gen_export, process_resultset, get_jinja_environment
+from timeline.connections import (
+    load_connections, save_connections, get_active, set_active,
+    get_connection_params, test_connection,
+)
 
 
 DEFAULT_TIME = 3600
@@ -39,23 +43,26 @@ cache = Cache(app, config={"CACHE_TYPE": "simple"})
 log = get_logger()
 
 _db_connection = None
+_app_session_id = None
 
 
 def _connect():
-    """Create a new Exasol connection."""
-    dsn = os.environ.get("HOST", "127.0.0.1:8888")
-    user = os.environ.get("USER", "sys")
+    """Create a new Exasol connection using active connection or env vars."""
+    global _app_session_id
+    dsn, user, password, extra = get_connection_params()
     log.info("Connecting to Exasol at %s", dsn)
     conn = pyexasol.connect(
         dsn=dsn,
         user=user,
-        password=os.environ.get("PASSWORD", "exasol"),
+        password=password,
         debug=False,
         fetch_dict=True,
         socket_timeout=30,
         compression=True,
+        **extra,
     )
-    log.info("Connected successfully to %s, user %s", dsn, user)
+    _app_session_id = conn.session_id()
+    log.info("Connected successfully to %s, user %s (session %s)", dsn, user, _app_session_id)
     return conn
 
 
@@ -109,7 +116,7 @@ config = get_config()
 
 
 @app.route("/<config_name>/")
-@cache.cached(timeout=600, query_string=True)
+@cache.cached(timeout=5, query_string=True)
 def get(config_name):
     log.info("Getting data for config %s", config_name)
     start_time = float(request.args.get("from", time.time() - DEFAULT_TIME))
@@ -124,6 +131,7 @@ def get(config_name):
     params["start_time"] = start_time
     params["stop_time"] = stop_time
     params["q"] = q
+    params["app_session_id"] = _app_session_id
     q = gen_export(
         params.get("base"),
         start_time,
@@ -142,7 +150,7 @@ def get(config_name):
 
 
 @app.route("/<config_name>/info")
-@cache.cached(timeout=600, query_string=True)
+@cache.cached(timeout=30, query_string=True)
 def get_info(config_name):
     box_id = validate_box_id(request.args.get("id"))
     log.info("Getting data for config %s, id %s", config_name, box_id)
@@ -176,3 +184,107 @@ def flush_statistics(config_name):
         log.info("Flushed stats in %.03f sec", (t1 - t0))
         return jsonify(result=out)
     abort(501)
+
+
+# ── Connection management routes ──────────────────────────────────
+
+
+@app.route("/connections", methods=["GET"])
+def list_connections():
+    conns = load_connections()
+    active_idx, _ = get_active()
+    # Return connections with passwords masked
+    safe = []
+    for c in conns:
+        safe.append({
+            "name": c.get("name", ""),
+            "host": c.get("host", ""),
+            "port": c.get("port", 8563),
+            "user": c.get("user", ""),
+            "fingerprint": c.get("fingerprint", ""),
+        })
+    return jsonify(connections=safe, active=active_idx)
+
+
+@app.route("/connections", methods=["POST"])
+def add_connection():
+    data = request.get_json(force=True)
+    for field in ("name", "host", "user", "password"):
+        if not data.get(field):
+            abort(400, description=f"Missing field: {field}")
+    conns = load_connections()
+    conns.append({
+        "name": data["name"],
+        "host": data["host"],
+        "port": int(data.get("port", 8563)),
+        "user": data["user"],
+        "password": data["password"],
+        "fingerprint": data.get("fingerprint", ""),
+    })
+    save_connections(conns)
+    return jsonify(index=len(conns) - 1), 201
+
+
+@app.route("/connections/<int:idx>", methods=["PUT"])
+def update_connection(idx):
+    conns = load_connections()
+    if idx < 0 or idx >= len(conns):
+        abort(404, description="Connection not found")
+    data = request.get_json(force=True)
+    for field in ("name", "host", "port", "user", "password", "fingerprint"):
+        if field in data:
+            value = data[field]
+            # Skip empty password — keep existing
+            if field == "password" and not value:
+                continue
+            conns[idx][field] = int(value) if field == "port" else value
+    save_connections(conns)
+    return jsonify(ok=True)
+
+
+@app.route("/connections/<int:idx>", methods=["DELETE"])
+def delete_connection(idx):
+    conns = load_connections()
+    if idx < 0 or idx >= len(conns):
+        abort(404, description="Connection not found")
+    conns.pop(idx)
+    save_connections(conns)
+    # Reset active if it was the deleted one or beyond
+    active_idx, _ = get_active()
+    if active_idx is not None and active_idx >= len(conns):
+        global _db_connection
+        try:
+            _db_connection.close()
+        except Exception:
+            pass
+        _db_connection = None
+    return jsonify(ok=True)
+
+
+@app.route("/connections/<int:idx>/activate", methods=["POST"])
+def activate_connection(idx):
+    global _db_connection
+    try:
+        conn = set_active(idx)
+    except IndexError:
+        abort(404, description="Connection not found")
+    # Close existing connection and clear cache
+    if _db_connection is not None:
+        try:
+            _db_connection.close()
+        except Exception:
+            pass
+        _db_connection = None
+    cache.clear()
+    log.info("Activated connection [%d] %s, cache cleared", idx, conn.get("name"))
+    return jsonify(ok=True, name=conn.get("name"))
+
+
+@app.route("/connections/test", methods=["POST"])
+def test_connection_route():
+    data = request.get_json(force=True)
+    for field in ("host", "user", "password"):
+        if not data.get(field):
+            abort(400, description=f"Missing field: {field}")
+    success, message = test_connection(data)
+    return jsonify(success=success, message=message)

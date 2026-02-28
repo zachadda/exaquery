@@ -2,13 +2,14 @@ import React from "react";
 import {
   CHANNEL_HEIGHT,
   CHANNEL_PADDING,
+  MIN_EVENT_WIDTH,
   channelYScale,
 } from "../../modules/constants";
 
 export default function EventRenderer(data, scaleX, onEventClick) {
   const x = scaleX(data.start_time);
   const y = channelYScale(data.offset, data.group_id) + CHANNEL_PADDING;
-  const width = scaleX(data.stop_time) - x;
+  const width = Math.max(scaleX(data.stop_time) - x, MIN_EVENT_WIDTH);
   const height = CHANNEL_HEIGHT - 2 * CHANNEL_PADDING;
   const cls = `event ${data.modifier} ${data.flag === 1 ? "flag" : "noflag"}`;
 

@@ -26,10 +26,13 @@ app = Flask("main")
 app.wsgi_app = DispatcherMiddleware(html_app, {"/api": timeline_app})
 app.config.from_object(os.environ.get("SETTINGS", "settings.devel"))
 
+# Allow env var override for the port (used by start.sh)
+port = int(os.environ.get("PORT", app.config["PORT"]))
+
 if app.config["DEBUG"]:
-    app.run(host=app.config["HOST"], port=app.config["PORT"], debug=True)
+    app.run(host=app.config["HOST"], port=port, debug=True)
 else:
     from gevent.pywsgi import WSGIServer
 
-    http_server = WSGIServer((app.config["HOST"], app.config["PORT"]), app)
+    http_server = WSGIServer((app.config["HOST"], port), app)
     http_server.serve_forever()

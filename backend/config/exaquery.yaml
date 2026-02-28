@@ -15,8 +15,9 @@ base:
         EXA_DBA_AUDIT_SQL sq
         left join EXA_DBA_AUDIT_SESSIONS ss on ss.session_id = sq.session_id
         where sq.start_time < from_posix_time({{ stop_time }}) and sq.stop_time >= from_posix_time({{ start_time }})
-        and (ss.logout_time is null or ss.logout_time >= from_posix_time({{start_time}})) 
+        and (ss.logout_time is null or ss.logout_time >= from_posix_time({{start_time}}))
         and ss.login_time <= from_posix_time({{stop_time}})
+        {% if app_session_id %}and sq.session_id != {{app_session_id}}{% endif %}
         {% if q  %}
         and (LOWER(sq.sql_text) LIKE '%{{q|sql_escape}}%' or LOWER(sq.error_text) LIKE '%{{q|sql_escape}}%')
         {% endif %}
@@ -32,13 +33,15 @@ base:
       from 
           EXA_DBA_AUDIT_SESSIONS ss
       where ss.login_time between from_posix_time({{start_time}}) and from_posix_time({{stop_time}})
+      {% if app_session_id %}and ss.session_id != {{app_session_id}}{% endif %}
       {% if q  %}
         and (ss.error_text LIKE '%{{q|sql_escape}}%')
         {% endif %}
   base: |
       select * from sessions
-      UNION ALL 
+      UNION ALL
       select * from queries
+flush: FLUSH STATISTICS
 info:
   info: |
     select sq.*, 

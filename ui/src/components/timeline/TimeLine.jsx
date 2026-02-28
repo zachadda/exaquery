@@ -11,13 +11,13 @@ import {
   channelYScale,
 } from "../../modules/constants";
 
-function Group({ data, width }) {
+function Group({ data, width, hidden, onToggle }) {
   const group_y = channelYScale(data.offset, data.index) - GROUP_PADDING;
   const height =
     channelYScale(data.offset + data.size, data.index) - group_y + GROUP_PADDING;
 
   return (
-    <g className="group">
+    <g className={`group ${hidden ? "group-hidden" : ""}`}>
       <rect x={0} y={group_y} width={GROUP_LIST_WIDTH} height={height} />
       <line
         x1={GROUP_LIST_WIDTH}
@@ -25,16 +25,28 @@ function Group({ data, width }) {
         x2={width}
         y2={group_y + height}
       />
-      <text x={10} y={group_y + height / 2} alignmentBaseline="middle">
-        {data.group}
+      <text
+        x={10}
+        y={group_y + height / 2}
+        alignmentBaseline="middle"
+        className="group-label"
+        onClick={() => onToggle(data.group)}
+      >
+        {hidden ? "\u25B6 " : "\u25BC "}{data.group}
       </text>
     </g>
   );
 }
 
-function GroupList({ groups, width }) {
+function GroupList({ groups, width, hiddenGroups, onToggleGroup }) {
   return groups.map((group) => (
-    <Group key={group.group} width={width} data={group} />
+    <Group
+      key={group.group}
+      width={width}
+      data={group}
+      hidden={hiddenGroups.has(group.group)}
+      onToggle={onToggleGroup}
+    />
   ));
 }
 
@@ -47,6 +59,8 @@ export default function TimeLine({
   lastUpdate,
   onEventClick,
   eventRenderer = DefaultEventRenderer,
+  hiddenGroups = new Set(),
+  onToggleGroup,
 }) {
   const handleChange = useCallback(
     (zoom, offset) => {
@@ -93,12 +107,18 @@ export default function TimeLine({
                 eventRenderer={eventRenderer}
                 onEventClick={onEventClick}
                 lastUpdate={lastUpdate}
+                hiddenGroups={hiddenGroups}
               />
             </g>
           </GestureHandler>
         </g>
         <g className="channelList" transform="translate(0,25)">
-          <GroupList groups={groups} width={width} />
+          <GroupList
+            groups={groups}
+            width={width}
+            hiddenGroups={hiddenGroups}
+            onToggleGroup={onToggleGroup}
+          />
         </g>
       </svg>
     </div>

@@ -5,6 +5,7 @@ import "./App.css";
 import TimeLine from "./components/timeline/TimeLine";
 import Popup from "./components/timeline/Popup";
 import ToolBar from "./components/timeline/ToolBar";
+import ConnectionManager from "./components/timeline/ConnectionManager";
 
 const DEFAULT_INITIAL_WINDOW = 600;
 
@@ -36,6 +37,10 @@ export default function App({ popupContent: PopupContent, api }) {
   const [q, setQ] = useState("");
   const [popupLeft, setPopupLeft] = useState(10);
   const [popupTop, setPopupTop] = useState(30);
+  const [connections, setConnections] = useState([]);
+  const [activeConnection, setActiveConnection] = useState(null);
+  const [showConnManager, setShowConnManager] = useState(false);
+  const [hiddenGroups, setHiddenGroups] = useState(new Set());
 
   const lastLoadRef = useRef({
     startTime: 0,
@@ -80,7 +85,7 @@ export default function App({ popupContent: PopupContent, api }) {
       const url = `${api}?from=${start_ts_window}&to=${stop_ts_window}&q=${searchQ || ""}`;
 
       setIsLoading((loading) => {
-        if (loading) return true;
+        if (loading && !force) return true;
 
         fetch(url)
           .then((r) => r.json())
@@ -181,8 +186,36 @@ export default function App({ popupContent: PopupContent, api }) {
       });
   }, [api, isLoading, getCurrentTimeInterval, onChange]);
 
+  const fetchConnections = useCallback(() => {
+    fetch("/api/connections")
+      .then((r) => r.json())
+      .then((data) => {
+        setConnections(data.connections || []);
+        setActiveConnection(data.active);
+      })
+      .catch((e) => console.error("Failed to fetch connections", e));
+  }, []);
+
+  const activateConnection = useCallback(
+    (idx) => {
+      fetch(`/api/connections/${idx}/activate`, { method: "POST" })
+        .then((r) => r.json())
+        .then(() => {
+          setActiveConnection(idx);
+          // Force reload data with new connection
+          const [start_ts, stop_ts] = getCurrentTimeInterval();
+          setData([]);
+          lastLoadRef.current = { startTime: 0, stopTime: 0, q: "" };
+          loadEvents(start_ts, stop_ts, q, true);
+        })
+        .catch((e) => console.error("Failed to activate connection", e));
+    },
+    [getCurrentTimeInterval, loadEvents, q]
+  );
+
   // Initial load
   useEffect(() => {
+    fetchConnections();
     const now = Date.now() / 1000;
     const start_ts = +params.from_ts || now - DEFAULT_INITIAL_WINDOW;
     const stop_ts = +params.to_ts || now;
@@ -193,6 +226,16 @@ export default function App({ popupContent: PopupContent, api }) {
 
   const width = window.innerWidth;
   const [start_ts, stop_ts] = getCurrentTimeInterval();
+
+  const toggleGroup = useCallback((groupName) => {
+    setHiddenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupName)) next.delete(groupName);
+      else next.add(groupName);
+      return next;
+    });
+  }, []);
+
 
   return (
     <div className="App">
@@ -209,6 +252,10 @@ export default function App({ popupContent: PopupContent, api }) {
         q={q}
         onChangeSearch={onChangeSearch}
         onFlushClick={flush}
+        connections={connections}
+        activeConnection={activeConnection}
+        onActivateConnection={activateConnection}
+        onManageConnections={() => setShowConnManager(true)}
       />
       <TimeLine
         width={width}
@@ -218,6 +265,8 @@ export default function App({ popupContent: PopupContent, api }) {
         onChange={onChange}
         lastUpdate={lastUpdate}
         onEventClick={openPopup}
+        hiddenGroups={hiddenGroups}
+        onToggleGroup={toggleGroup}
       />
       <Popup
         isVisible={params.id != null}
@@ -227,6 +276,15 @@ export default function App({ popupContent: PopupContent, api }) {
       >
         <PopupContent data={infoData} />
       </Popup>
+      {showConnManager && (
+        <ConnectionManager
+          connections={connections}
+          activeIndex={activeConnection}
+          onClose={() => setShowConnManager(false)}
+          onRefresh={fetchConnections}
+          onActivate={activateConnection}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,379 @@
+@use '../../styles/tokens' as *;
+
+/* ── ConnectionPicker dropdown ── */
+
+.ConnectionPicker {
+  position: relative;
+  flex: 0 0 auto;
+
+  .picker-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: $bg-input;
+    border: 1px solid $border;
+    border-radius: 6px;
+    color: $text-primary;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s;
+
+    &:hover {
+      border-color: $border-light;
+    }
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $danger;
+    flex-shrink: 0;
+
+    &.connected {
+      background: $success;
+    }
+  }
+
+  .conn-name {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chevron {
+    color: $text-muted;
+    font-size: 10px;
+    margin-left: 2px;
+  }
+
+  .picker-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 220px;
+    background: $bg-panel;
+    border: 1px solid $border;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    z-index: 500;
+    padding: 4px;
+  }
+
+  .empty-msg {
+    padding: 8px 12px;
+    color: $text-muted;
+    font-size: 12px;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 12px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: $text-primary;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s;
+
+    &:hover {
+      background: $bg-hover;
+    }
+
+    &.active {
+      background: rgba($accent, 0.12);
+    }
+
+    .item-name {
+      flex: 1;
+    }
+
+    .item-host {
+      color: $text-muted;
+      font-size: 11px;
+    }
+
+    .check-mark {
+      color: $success;
+      font-size: 14px;
+    }
+  }
+
+  .manage-btn {
+    color: $accent;
+    font-weight: 500;
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: $border;
+    margin: 4px 0;
+  }
+}
+
+/* ── ConnectionManager modal ── */
+
+.ConnectionManager-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ConnectionManager {
+  background: $bg-panel;
+  border: 1px solid $border;
+  border-radius: 12px;
+  width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+
+  .cm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid $border;
+
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: $text-primary;
+    }
+
+    .cm-close {
+      background: none;
+      border: none;
+      color: $text-muted;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+
+      &:hover {
+        color: $text-primary;
+      }
+    }
+  }
+
+  .cm-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+  }
+
+  .cm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .cm-empty {
+    color: $text-muted;
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  .cm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: $bg-input;
+    border: 1px solid $border;
+    border-radius: 8px;
+
+    &.active {
+      border-color: $accent;
+    }
+  }
+
+  .cm-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cm-item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-primary;
+  }
+
+  .cm-item-detail {
+    font-size: 11px;
+    color: $text-muted;
+  }
+
+  .cm-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cm-active-badge {
+    font-size: 11px;
+    color: $success;
+    font-weight: 500;
+    padding: 3px 8px;
+    background: rgba($success, 0.1);
+    border-radius: 4px;
+  }
+
+  .cm-btn {
+    padding: 5px 12px;
+    background: $bg-input;
+    border: 1px solid $border;
+    border-radius: 6px;
+    color: $text-secondary;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: $bg-hover;
+      color: $text-primary;
+      border-color: $border-light;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .cm-btn-primary {
+    background: $accent;
+    border-color: $accent;
+    color: #fff;
+
+    &:hover {
+      background: $accent-hover;
+      border-color: $accent-hover;
+      color: #fff;
+    }
+  }
+
+  .cm-btn-activate {
+    background: rgba($accent, 0.15);
+    border-color: $accent;
+    color: $accent;
+
+    &:hover {
+      background: rgba($accent, 0.25);
+    }
+  }
+
+  .cm-btn-danger {
+    &:hover {
+      background: rgba($danger, 0.15);
+      border-color: $danger;
+      color: $danger;
+    }
+  }
+
+  .cm-form {
+    border-top: 1px solid $border;
+    padding-top: 16px;
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: $text-primary;
+    }
+  }
+
+  .cm-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    .cm-field {
+      margin-bottom: 0;
+    }
+
+    .cm-field-grow {
+      flex: 1;
+    }
+
+    .cm-field-port {
+      flex: 0 0 90px;
+    }
+  }
+
+  .cm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+
+    label {
+      font-size: 12px;
+      color: $text-secondary;
+      font-weight: 500;
+    }
+
+    input {
+      padding: 7px 12px;
+      background: $bg-input;
+      border: 1px solid $border;
+      border-radius: 6px;
+      color: $text-primary;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+
+      &::placeholder {
+        color: $text-muted;
+      }
+
+      &:focus {
+        border-color: $accent;
+      }
+    }
+  }
+
+  .cm-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .cm-test-result {
+    font-size: 12px;
+
+    &.success {
+      color: $success;
+    }
+
+    &.error {
+      color: $danger;
+    }
+  }
+
+  .cm-form-submit {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+}

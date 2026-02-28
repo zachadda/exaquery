@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { formatDuration, intervalToDuration } from "date-fns";
 import "./ToolBar.scss";
+import ConnectionPicker from "./ConnectionPicker";
 
 const AUTO_REFRESH_TIMEOUT = 1100;
 
@@ -25,7 +26,7 @@ function preciseDiff(startMs, stopMs) {
   return formatDuration(dur, { delimiter: ", " }) || "0 seconds";
 }
 
-export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, onFlushClick }) {
+export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, onFlushClick, connections, activeConnection, onActivateConnection, onManageConnections }) {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const timerRef = useRef(null);
 
@@ -62,6 +63,12 @@ export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, o
 
   return (
     <div className="ToolBar">
+      <ConnectionPicker
+        connections={connections}
+        activeIndex={activeConnection}
+        onActivate={onActivateConnection}
+        onManageClick={onManageConnections}
+      />
       <div className="searchBox panel">
         <input
           type="text"

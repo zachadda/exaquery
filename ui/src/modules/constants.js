@@ -1,7 +1,8 @@
 export const GROUP_LIST_WIDTH = 350;
-export const CHANNEL_HEIGHT = 10;
+export const CHANNEL_HEIGHT = 18;
 export const CHANNEL_PADDING = 2;
-export const GROUP_PADDING = 3;
+export const GROUP_PADDING = 4;
+export const MIN_EVENT_WIDTH = 3;
 
 export function channelYScale(channel_no, group_no) {
   return (
