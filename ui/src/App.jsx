@@ -41,6 +41,8 @@ export default function App({ popupContent: PopupContent, api }) {
   const [activeConnection, setActiveConnection] = useState(null);
   const [showConnManager, setShowConnManager] = useState(false);
   const [hiddenGroups, setHiddenGroups] = useState(new Set());
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const autoRefreshBeforePopupRef = useRef(false);
 
   const lastLoadRef = useRef({
     startTime: 0,
@@ -158,16 +160,22 @@ export default function App({ popupContent: PopupContent, api }) {
       setPopupLeft(mouse_x < max_x ? max_x + 10 : 10);
       setPopupTop(e.pageY - e.clientY + 80);
 
+      // Pause auto-refresh while inspecting a query
+      autoRefreshBeforePopupRef.current = autoRefresh;
+      if (autoRefresh) setAutoRefresh(false);
+
       const [from_ts, to_ts] = getCurrentTimeInterval();
       changeUrl({ from_ts, to_ts, id: box_id });
       loadPopup(box_id);
     },
-    [getCurrentTimeInterval, changeUrl, loadPopup]
+    [getCurrentTimeInterval, changeUrl, loadPopup, autoRefresh]
   );
 
   const closePopup = useCallback(() => {
     const [from_ts, to_ts] = getCurrentTimeInterval();
     changeUrl({ from_ts, to_ts });
+    // Resume auto-refresh if it was on before
+    if (autoRefreshBeforePopupRef.current) setAutoRefresh(true);
   }, [getCurrentTimeInterval, changeUrl]);
 
   const flush = useCallback(() => {
@@ -256,6 +264,8 @@ export default function App({ popupContent: PopupContent, api }) {
         activeConnection={activeConnection}
         onActivateConnection={activateConnection}
         onManageConnections={() => setShowConnManager(true)}
+        autoRefresh={autoRefresh}
+        onSetAutoRefresh={setAutoRefresh}
       />
       <TimeLine
         width={width}

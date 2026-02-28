@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { formatDuration, intervalToDuration } from "date-fns";
 import "./ToolBar.scss";
 import ConnectionPicker from "./ConnectionPicker";
@@ -26,8 +26,7 @@ function preciseDiff(startMs, stopMs) {
   return formatDuration(dur, { delimiter: ", " }) || "0 seconds";
 }
 
-export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, onFlushClick, connections, activeConnection, onActivateConnection, onManageConnections }) {
-  const [autoRefresh, setAutoRefresh] = useState(false);
+export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, onFlushClick, connections, activeConnection, onActivateConnection, onManageConnections, autoRefresh, onSetAutoRefresh }) {
   const timerRef = useRef(null);
 
   const onDateChange = useCallback(
@@ -109,7 +108,7 @@ export default function ToolBar({ changeTs, from_ts, to_ts, q, onChangeSearch, o
           <input
             type="checkbox"
             checked={autoRefresh}
-            onChange={(e) => setAutoRefresh(e.target.checked)}
+            onChange={(e) => onSetAutoRefresh(e.target.checked)}
           />
           Auto Refresh
         </label>
